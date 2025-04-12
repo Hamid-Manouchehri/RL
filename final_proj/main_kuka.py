@@ -93,6 +93,8 @@ def orientation_path(t, t_max, start_orient, end_orient):
 def get_current_eff_pose():
     linkstate = p.getLinkState(kuka_id, eff_index, computeForwardKinematics=True)
     position, orientation = linkstate[0], linkstate[1]
+    position = list(position)
+    position[2] = position[2] - 0.0491
     return (position, p.getEulerFromQuaternion(orientation))
 
 def get_current_joint_angles(kuka_or_gripper=None):
@@ -188,41 +190,28 @@ def get_object_state(object_id):
     orientation_euler = p.getEulerFromQuaternion(orientation)
     return orientation_euler
 
-def execute_pick_and_place(third_pos, fourth_pos):
-    execute_task_space_trajectory(get_current_eff_pose(), third_pos, duration=1)
-    execute_gripper(init_pos=0.01, fin_pos=0.00085, duration=0.5)  # Close gripper
-    execute_task_space_trajectory(third_pos, fourth_pos, duration=1)
-    tilt_angle = get_object_state(cuboid_green_id)[1]
-    execute_task_space_trajectory(fourth_pos, third_pos, duration=1)
-    execute_gripper(init_pos=0., fin_pos=0.01, duration=0.5)  # Open gripper
-    execute_task_space_trajectory(third_pos, fourth_pos, duration=1)
-    return tilt_angle
 
 def main():
     # Set a gripping location as the x-coordinate (here 0.55 for demonstration)
-    grip_location = 0.55  
+    # grip_location = 0.55  
     
-    # Define desired end-effector positions and orientations for task space trajectory
-    third_pos = np.array([[grip_location, 0., 0.08], [-np.pi/2, 0., -np.pi/2]])
-    fourth_pos = np.array([[grip_location, 0., 0.2], [-np.pi/2, 0., -np.pi/2]])
+    # # Define desired end-effector positions and orientations for task space trajectory
+    # third_pos = np.array([[grip_location, 0., 0.08], [-np.pi/2, 0., -np.pi/2]])
+    # fourth_pos = np.array([[grip_location, 0., 0.2], [-np.pi/2, 0., -np.pi/2]])
     
     init_kuka_joint_angle = np.array([0.0] * 7)
-    des_kuka_joint_angle = np.array([0., 0.114, 0., -1.895, 0., 1.13, 0.0])
+    des_kuka_joint_angle = np.array([-0., 0.44, 0., -2.086, -0., 0.615, -0.])
     
     # Set the initial configuration of KUKA and open the gripper
     set_kuka_joint_angles(init_kuka_joint_angle, des_kuka_joint_angle, duration=2)
+
     execute_gripper(init_pos=0., fin_pos=0.01, duration=1)  # Open gripper
-    # print(get_current_eff_pose())
-    # print(get_current_joint_angles(), '\n')
-    
-    # Example usage of moveL: move the end-effector from point A to point B in a straight line
-    start_point = [0.41, 0., 0.3955]  # Cartesian coordinates of point A
-    end_point = [0.41, 0., 0.5]    # Cartesian coordinates of point B
-    target_orientation = [-np.pi/2, 0., -np.pi/2] # Constant target orientation in Euler angles
-    
-    moveL(kuka_id, eff_index, start_point, end_point, target_orientation, duration=3, time_step=sim_time_step)
-    # print(get_current_eff_pose())
-    # print(get_current_joint_angles(), '\n')
+    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
+    execute_gripper(init_pos=0.01, fin_pos=0.00085, duration=0.5)  # Close gripper
+    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
+    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
+    execute_gripper(init_pos=0., fin_pos=0.01, duration=1)  # Open gripper
+    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
     
     # Continue simulation indefinitely to observe the final configuration
     while True:
