@@ -95,7 +95,7 @@ def get_current_eff_pose():
     position, orientation = linkstate[0], linkstate[1]
     position = list(position)
     position[2] = position[2] - 0.0491
-    return (position, p.getEulerFromQuaternion(orientation))
+    return (position, list(p.getEulerFromQuaternion(orientation)))
 
 def get_current_joint_angles(kuka_or_gripper=None):
     joint_states = p.getJointStates(kuka_id, list(range(numJoints)))
@@ -192,27 +192,38 @@ def get_object_state(object_id):
 
 
 def main():
-    # Set a gripping location as the x-coordinate (here 0.55 for demonstration)
-    # grip_location = 0.55  
-    
-    # # Define desired end-effector positions and orientations for task space trajectory
-    # third_pos = np.array([[grip_location, 0., 0.08], [-np.pi/2, 0., -np.pi/2]])
-    # fourth_pos = np.array([[grip_location, 0., 0.2], [-np.pi/2, 0., -np.pi/2]])
-    
+
     init_kuka_joint_angle = np.array([0.0] * 7)
     des_kuka_joint_angle = np.array([-0., 0.44, 0., -2.086, -0., 0.615, -0.])
     
-    # Set the initial configuration of KUKA and open the gripper
+    # Set the initial configuration of KUKA and open gripper
     set_kuka_joint_angles(init_kuka_joint_angle, des_kuka_joint_angle, duration=2)
+    execute_gripper(init_pos=0., fin_pos=0.01, duration=1)  # Open gripper
 
+    print(get_current_eff_pose(),'\n')
+
+    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+    execute_gripper(init_pos=0.01, fin_pos=0.0008, duration=0.5)  # Close gripper
+    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
     execute_gripper(init_pos=0., fin_pos=0.01, duration=1)  # Open gripper
-    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
-    execute_gripper(init_pos=0.01, fin_pos=0.00085, duration=0.5)  # Close gripper
-    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
-    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.41, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
+    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+
+    print(get_current_eff_pose(),'\n')
+
+    moveL(kuka_id, eff_index, [0.41, 0., 0.2025], [0.47, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+
+    print(get_current_eff_pose(),'\n')
+
+    moveL(kuka_id, eff_index, [0.47, 0., 0.2025], [0.47, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+    execute_gripper(init_pos=0.01, fin_pos=0.0008, duration=0.5)  # Close gripper
+    moveL(kuka_id, eff_index, [0.47, 0., 0.08], [0.47, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
+    moveL(kuka_id, eff_index, [0.47, 0., 0.2025], [0.47, 0., 0.08], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
     execute_gripper(init_pos=0., fin_pos=0.01, duration=1)  # Open gripper
-    moveL(kuka_id, eff_index, [0.41, 0., 0.08], [0.41, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=2, time_step=sim_time_step)
+    moveL(kuka_id, eff_index, [0.47, 0., 0.08], [0.47, 0., 0.2025], [-np.pi/2, 0., -np.pi/2], duration=1, time_step=sim_time_step)
     
+    print(get_current_eff_pose(),'\n')
+
     # Continue simulation indefinitely to observe the final configuration
     while True:
         p.stepSimulation()
